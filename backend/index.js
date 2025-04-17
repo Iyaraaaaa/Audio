@@ -11,7 +11,7 @@ import reviewRouter from "./routes/reviewRouter.js";
 import inquiryRouter from "./routes/inquiryRouter.js";
 import orderRouter from "./routes/orderRouter.js";
 
-// Load environment variables
+// Load environment variables from .env
 dotenv.config();
 
 // Create Express app
@@ -19,7 +19,7 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json()); // Replaces body-parser
+app.use(express.json()); // Parses incoming JSON requests
 
 // JWT Middleware
 app.use((req, res, next) => {
@@ -32,16 +32,17 @@ app.use((req, res, next) => {
       } else {
         req.user = decoded;
       }
-      next(); // Always call next
+      next(); // Always continue
     });
   } else {
-    next();
+    next(); // Continue without a token
   }
 });
 
 // MongoDB Connection
-const mongoUrl = process.env.MONGO_URL;
-mongoose.connect(mongoUrl)
+const mongoUrl = process.env.MONGODB_URI; // 🔥 Fixed this line
+mongoose
+  .connect(mongoUrl)
   .then(() => {
     console.log("✅ MongoDB connected successfully");
   })
@@ -49,14 +50,14 @@ mongoose.connect(mongoUrl)
     console.error("MongoDB connection error:", err);
   });
 
-// Routes
+// API Routes
 app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
 app.use("/api/reviews", reviewRouter);
 app.use("/api/inquiries", inquiryRouter);
-app.use("/api/orders", /*requireAuth,*/ orderRouter); // Uncomment `requireAuth` to protect
+app.use("/api/orders", /* requireAuth, */ orderRouter); // Add `requireAuth` middleware if needed
 
-// Start Server
+// Start the server
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);

@@ -1,16 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CiCirclePlus } from "react-icons/ci";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export default function UpdateItemsPage() {
+export default function AddItemsPage() {
   const location = useLocation(); // Ensure location is initialized before use
   const navigate = useNavigate();
 
   // Use optional chaining to prevent errors if location.state is undefined
   const product = location.state || {};
-  console.log(product);
 
   const [productKey, setProductKey] = useState(product.key || "");
   const [productName, setProductName] = useState(product.name || "");
@@ -24,16 +23,7 @@ export default function UpdateItemsPage() {
   const [productDescription, setProductDescription] = useState(
     product.description || ""
   );
-  // const [productImage, setProductImage] = useState("");
-
-  useEffect(() => {
-    if (product.dimensions) {
-      const [width, height, depth] = product.dimensions.split("*");
-      setProductWidth(width);
-      setProductHeight(height);
-      setProductDepth(depth);
-    }
-  }, [product.dimensions]);
+  const [productImage, setProductImage] = useState("");
 
   // Function to validate form inputs
   function validateForm() {
@@ -42,8 +32,8 @@ export default function UpdateItemsPage() {
       !productName ||
       !productPrice ||
       !productCategory ||
-      !productDescription
-      // !productImage
+      !productDescription ||
+      !productImage
     ) {
       toast.error("Please fill in all required fields.");
       return false;
@@ -77,16 +67,16 @@ export default function UpdateItemsPage() {
       key: productKey,
       name: productName,
       price: parseFloat(productPrice),
-      category: productCategory,
+      category: productCategory.split(",").map((category) => category.trim()), // Convert string to array
       dimensions: `${productWidth}*${productHeight}*${productDepth}`,
       description: productDescription,
-      // imageUrl: productImage,
+      imageUrl: productImage,
       availability: true,
     };
 
     try {
-      const result = await axios.put(
-        `${import.meta.env.VITE_BACKEND_URL}/api/products/${productKey}`,
+      const result = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/products/`,
         updatedItem,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -102,11 +92,10 @@ export default function UpdateItemsPage() {
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-gray-100">
-      <h1 className="text-2xl font-bold mb-4">Update Item</h1>
+      <h1 className="text-2xl font-bold mb-4">Add Item</h1>
 
       <div className="w-[400px] border border-gray-300 bg-white shadow-md rounded-lg p-6 flex flex-col items-center gap-4">
         <input
-          disabled
           type="text"
           placeholder="Product Key"
           value={productKey}
@@ -170,14 +159,14 @@ export default function UpdateItemsPage() {
           onChange={(e) => setProductDescription(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400"
         />
-        {/* 
+
         <input
           type="text"
           placeholder="Product Image URL"
           value={productImage}
           onChange={(e) => setProductImage(e.target.value)}
           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400"
-        /> */}
+        />
 
         {/* Buttons */}
         <div className="w-full flex gap-2">
@@ -185,7 +174,7 @@ export default function UpdateItemsPage() {
             onClick={handleUpdateItem}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white font-bold rounded-md hover:bg-blue-600 transition"
           >
-            <CiCirclePlus size={20} /> Update Item
+            <CiCirclePlus size={20} /> Add Item
           </button>
           <button
             onClick={() => navigate("/admin/items")}
